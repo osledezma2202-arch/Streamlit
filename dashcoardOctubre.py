@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -136,6 +135,60 @@ if product_col:
     st.plotly_chart(fig_top_products, use_container_width=True)
 else:
     st.info("No se encontró una columna de producto en los datos para mostrar el top 10.")
+
+# --- SECCIÓN 2C: MAPA DE VENTAS POR ESTADO ---
+st.markdown("---")
+st.subheader("🗺️ Mapa de Ventas por Estado")
+
+state_abbrev = {
+    "Alabama": "AL", "Alaska": "AK", "Arizona": "AZ", "Arkansas": "AR",
+    "California": "CA", "Colorado": "CO", "Connecticut": "CT", "Delaware": "DE",
+    "Florida": "FL", "Georgia": "GA", "Hawaii": "HI", "Idaho": "ID",
+    "Illinois": "IL", "Indiana": "IN", "Iowa": "IA", "Kansas": "KS",
+    "Kentucky": "KY", "Louisiana": "LA", "Maine": "ME", "Maryland": "MD",
+    "Massachusetts": "MA", "Michigan": "MI", "Minnesota": "MN", "Mississippi": "MS",
+    "Missouri": "MO", "Montana": "MT", "Nebraska": "NE", "Nevada": "NV",
+    "New Hampshire": "NH", "New Jersey": "NJ", "New Mexico": "NM", "New York": "NY",
+    "North Carolina": "NC", "North Dakota": "ND", "Ohio": "OH", "Oklahoma": "OK",
+    "Oregon": "OR", "Pennsylvania": "PA", "Rhode Island": "RI", "South Carolina": "SC",
+    "South Dakota": "SD", "Tennessee": "TN", "Texas": "TX", "Utah": "UT",
+    "Vermont": "VT", "Virginia": "VA", "Washington": "WA", "West Virginia": "WV",
+    "Wisconsin": "WI", "Wyoming": "WY", "District of Columbia": "DC"
+}
+
+if 'State' in df_filtered.columns:
+    df_map = (
+        df_filtered.groupby('State', as_index=False)['Sales']
+        .sum()
+        .rename(columns={'Sales': 'Ventas'})
+        .sort_values('Ventas', ascending=False)
+    )
+    df_map['CodigoEstado'] = df_map['State'].map(state_abbrev)
+    df_map = df_map.dropna(subset=['CodigoEstado']).copy()
+
+    if not df_map.empty:
+        fig_map = px.choropleth(
+            df_map,
+            locations='CodigoEstado',
+            locationmode='USA-states',
+            color='Ventas',
+            scope='usa',
+            color_continuous_scale='Viridis',
+            labels={'Ventas': 'Ventas ($)', 'State': 'Estado'},
+            title='Ventas por Estado (escala de color)',
+            hover_name='State',
+            hover_data={'Ventas': ':.2f'}
+        )
+        fig_map.update_layout(
+            template='plotly_white',
+            geo=dict(bgcolor='white'),
+            margin=dict(l=20, r=20, t=40, b=20)
+        )
+        st.plotly_chart(fig_map, use_container_width=True)
+    else:
+        st.info("No hay datos geográficos válidos para mostrar el mapa de ventas.")
+else:
+    st.info("La columna 'State' no está disponible para mostrar el mapa de ventas.")
 
 # --- SECCIÓN 3: TABLA DE DETALLES Y ALERTAS ---
 st.markdown("---")
