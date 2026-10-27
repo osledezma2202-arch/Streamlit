@@ -107,6 +107,36 @@ with col_der:
     fig_scatter.add_hline(y=0, line_dash="dash", line_color="red")
     st.plotly_chart(fig_scatter, use_container_width=True)
 
+# --- SECCIÓN 2B: TOP 10 PRODUCTOS MÁS VENDIDOS ---
+st.markdown("---")
+st.subheader("🏆 Top 10 Productos Más Vendidos por Categoría")
+
+product_columns = ['Product Name', 'Product', 'Product_Name', 'Product name']
+product_col = next((col for col in product_columns if col in df_filtered.columns), None)
+
+if product_col:
+    df_top_products = (
+        df_filtered.groupby([product_col, 'Category'], as_index=False)['Sales']
+        .sum()
+        .sort_values(by='Sales', ascending=False)
+        .head(10)
+    )
+
+    fig_top_products = px.bar(
+        df_top_products,
+        x='Sales',
+        y=product_col,
+        color='Category',
+        orientation='h',
+        text_auto='$.2s',
+        title='Top 10 productos más vendidos por categoría',
+        labels={'Sales': 'Ventas ($)', product_col: 'Producto', 'Category': 'Categoría'}
+    )
+    fig_top_products.update_layout(yaxis={'categoryorder': 'total ascending'})
+    st.plotly_chart(fig_top_products, use_container_width=True)
+else:
+    st.info("No se encontró una columna de producto en los datos para mostrar el top 10.")
+
 # --- SECCIÓN 3: TABLA DE DETALLES Y ALERTAS ---
 st.markdown("---")
 st.subheader("⚠️ Focos de Alerta (Transacciones con Pérdidas Críticas)")
